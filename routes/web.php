@@ -78,7 +78,7 @@ Route::middleware('auth')->group(function () {
 
 
     // ===============================
-    // REFRESH BMKG
+    // REFRESH BMKG MANUAL
     // ===============================
     Route::get('/admin/refresh', function () {
         $exitCode = Artisan::call('gempa:fetch');
@@ -95,11 +95,30 @@ Route::middleware('auth')->group(function () {
 
 
     // ===============================
-    // AUTO FETCH INFO
+    // REFRESH BMKG JSON UNTUK AUTO FETCH
     // ===============================
+    Route::get('/admin/refresh-json', function () {
+        $beforeId = Gempa::max('id');
+
+        $exitCode = Artisan::call('gempa:fetch');
+        $output = trim(Artisan::output());
+
+        $afterId = Gempa::max('id');
+
+        return response()->json([
+            'success' => $exitCode === 0,
+            'message' => $output ?: 'Auto fetch selesai.',
+            'before_id' => $beforeId,
+            'after_id' => $afterId,
+            'has_new_data' => $afterId != $beforeId,
+        ]);
+    })->name('admin.refreshJson');
+
+
+    // AUTO FETCH INFO
     Route::get('/admin/auto-fetch-info', function () {
         return redirect('/admin/history')
-            ->with('success', 'Untuk saat ini gunakan tombol Refresh Data BMKG untuk mengambil data terbaru.');
+            ->with('success', 'Auto Fetch aktif selama halaman History Gempa dibuka.');
     })->name('admin.autoFetch');
 
 
