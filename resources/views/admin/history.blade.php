@@ -34,54 +34,34 @@
         color: white;
     }
 
-    .btn-green-custom {
-        background: #22c55e;
-        color: white;
-    }
-
-    .btn-gray-custom {
-        background: #6b7280;
-        color: white;
-    }
-
     .btn-red-custom {
         background: #ff4757;
         color: white;
     }
 
-    .auto-status-badge {
+    .worker-info-box {
+        margin-bottom: 15px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #dcfce7;
+        color: #166534;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .worker-badge {
         height: 44px;
         min-width: 150px;
         padding: 0 14px;
         border-radius: 8px;
-        background: #f3f4f6;
-        color: #6b7280;
+        background: #dcfce7;
+        color: #166534;
         font-size: 14px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-    }
-
-    .auto-fetch-alert-custom {
-        display: none;
-        margin-bottom: 15px;
-        background: #dcfce7;
-        color: #166534;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    .auto-fetch-error-custom {
-        display: none;
-        margin-bottom: 15px;
-        background: #fee2e2;
-        color: #991b1b;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-weight: 500;
     }
 </style>
 
@@ -93,11 +73,11 @@
     </div>
 @endif
 
-<div id="autoFetchAlert" class="auto-fetch-alert-custom">
-    Auto Fetch aktif. Sistem mengambil data BMKG setiap 15 detik selama halaman ini dibuka.
+<div class="worker-info-box">
+    Auto Fetch dijalankan oleh Railway Worker dengan command
+    <b>php artisan gempa:auto-fetch</b>.
+    Sistem akan mengambil data BMKG setiap 15 detik selama service worker aktif.
 </div>
-
-<div id="autoFetchError" class="auto-fetch-error-custom"></div>
 
 <div class="top-action-row">
 
@@ -105,19 +85,12 @@
         🔄 Refresh Data BMKG
     </a>
 
-    <button type="button"
-            id="autoFetchBtn"
-            onclick="toggleAutoFetch()"
-            class="action-btn-custom btn-gray-custom">
-        ⚪ Auto Fetch OFF
-    </button>
-
     <a href="{{ route('admin.dummyGempa.create') }}" class="action-btn-custom btn-red-custom">
         🚨 Tambah Data Dummy
     </a>
 
-    <span id="autoFetchStatus" class="auto-status-badge">
-        Nonaktif
+    <span class="worker-badge">
+        🟢 Worker Auto Fetch
     </span>
 
 </div>
@@ -182,138 +155,5 @@
         @endforelse
     </table>
 </div>
-
-<script>
-    let autoFetchInterval = null;
-    let autoFetchActive = localStorage.getItem('autoFetchGempa') === 'ON';
-
-    const autoFetchBtn = document.getElementById('autoFetchBtn');
-    const autoFetchAlert = document.getElementById('autoFetchAlert');
-    const autoFetchError = document.getElementById('autoFetchError');
-    const autoFetchStatus = document.getElementById('autoFetchStatus');
-
-    function updateAutoFetchView() {
-        if (autoFetchActive) {
-            autoFetchBtn.innerText = '🟢 Auto Fetch ON';
-
-            autoFetchBtn.classList.remove('btn-gray-custom');
-            autoFetchBtn.classList.add('btn-green-custom');
-
-            autoFetchAlert.style.display = 'block';
-        } else {
-            autoFetchBtn.innerText = '⚪ Auto Fetch OFF';
-
-            autoFetchBtn.classList.remove('btn-green-custom');
-            autoFetchBtn.classList.add('btn-gray-custom');
-
-            autoFetchAlert.style.display = 'none';
-            autoFetchStatus.innerText = 'Nonaktif';
-            autoFetchStatus.style.background = '#f3f4f6';
-            autoFetchStatus.style.color = '#6b7280';
-            hideAutoFetchError();
-        }
-    }
-
-    function showAutoFetchError(message) {
-        autoFetchError.style.display = 'block';
-        autoFetchError.innerText = message;
-
-        autoFetchStatus.innerText = 'Gagal';
-        autoFetchStatus.style.background = '#fee2e2';
-        autoFetchStatus.style.color = '#991b1b';
-    }
-
-    function hideAutoFetchError() {
-        autoFetchError.style.display = 'none';
-        autoFetchError.innerText = '';
-    }
-
-    function toggleAutoFetch() {
-        autoFetchActive = !autoFetchActive;
-
-        if (autoFetchActive) {
-            localStorage.setItem('autoFetchGempa', 'ON');
-            startAutoFetch();
-        } else {
-            localStorage.setItem('autoFetchGempa', 'OFF');
-            stopAutoFetch();
-        }
-
-        updateAutoFetchView();
-    }
-
-    function startAutoFetch() {
-        stopAutoFetch();
-
-        hideAutoFetchError();
-
-        autoFetchStatus.innerText = 'Cek BMKG...';
-        autoFetchStatus.style.background = '#dcfce7';
-        autoFetchStatus.style.color = '#166534';
-
-        fetchGempa();
-
-        autoFetchInterval = setInterval(function () {
-            fetchGempa();
-        }, 15000);
-    }
-
-    function stopAutoFetch() {
-        if (autoFetchInterval !== null) {
-            clearInterval(autoFetchInterval);
-            autoFetchInterval = null;
-        }
-    }
-
-    function fetchGempa() {
-        fetch("{{ route('admin.refreshJson') }}", {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-            .then(async response => {
-                const text = await response.text();
-
-                let data = null;
-
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    throw new Error('Auto fetch gagal membaca response JSON. Coba login ulang atau cek route refresh-json.');
-                }
-
-                return data;
-            })
-            .then(data => {
-                console.log('Auto Fetch:', data);
-
-                if (data.success) {
-                    hideAutoFetchError();
-
-                    autoFetchStatus.innerText = 'Cek: ' + (data.checked_at || '-');
-                    autoFetchStatus.style.background = '#dcfce7';
-                    autoFetchStatus.style.color = '#166534';
-
-                    if (data.has_new_data) {
-                        localStorage.setItem('autoFetchGempa', 'ON');
-                        window.location.reload();
-                    }
-                } else {
-                    showAutoFetchError(data.message || 'Auto fetch gagal.');
-                }
-            })
-            .catch(error => {
-                console.error('Auto Fetch Error:', error);
-                showAutoFetchError(error.message || 'Auto fetch gagal.');
-            });
-    }
-
-    updateAutoFetchView();
-
-    if (autoFetchActive) {
-        startAutoFetch();
-    }
-</script>
 
 @endsection

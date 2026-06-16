@@ -105,42 +105,6 @@ Route::middleware('auth')->group(function () {
 
 
     // ===============================
-    // REFRESH BMKG JSON UNTUK AUTO FETCH
-    // ===============================
-    Route::get('/admin/refresh-json', function () {
-        try {
-            $beforeId = Gempa::max('id');
-
-            Artisan::call('gempa:fetch');
-            $output = trim(Artisan::output());
-
-            $afterId = Gempa::max('id');
-
-            $message = $output ?: 'Auto fetch selesai.';
-
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'before_id' => $beforeId,
-                'after_id' => $afterId,
-                'has_new_data' => $afterId != $beforeId,
-                'checked_at' => now('Asia/Jakarta')->format('H:i:s') . ' WIB',
-            ]);
-
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Auto fetch error: ' . $e->getMessage(),
-                'before_id' => null,
-                'after_id' => null,
-                'has_new_data' => false,
-                'checked_at' => now('Asia/Jakarta')->format('H:i:s') . ' WIB',
-            ]);
-        }
-    })->name('admin.refreshJson');
-
-
-    // ===============================
     // HALAMAN TAMBAH DATA DUMMY GEMPA
     // ===============================
     Route::get('/admin/dummy-gempa/create', function () {
@@ -186,13 +150,6 @@ Route::middleware('auth')->group(function () {
         return redirect('/admin/history')
             ->with('success', 'Data dummy gempa berhasil ditambahkan ke history!');
     })->name('admin.dummyGempa.store');
-
-
-    // AUTO FETCH INFO
-    Route::get('/admin/auto-fetch-info', function () {
-        return redirect('/admin/history')
-            ->with('success', 'Auto Fetch aktif selama halaman History Gempa dibuka.');
-    })->name('admin.autoFetch');
 
 
     // UPLOAD EXCEL
