@@ -10,3 +10,10 @@ Route::get('/gempa', [GempaController::class, 'api']);
 Route::get('/berita', [BeritaController::class, 'api']);
 Route::get('/edukasi', [EdukasiController::class, 'api']);
 Route::post('/umpan-balik', [UmpanBalikController::class, 'storeApi']);
+
+Route::get('/test-umpan-balik', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'API umpan balik aktif'
+    ]);
+});
