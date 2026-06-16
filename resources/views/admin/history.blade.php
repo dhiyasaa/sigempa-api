@@ -2,6 +2,79 @@
 
 @section('content')
 
+<style>
+    .top-action-row {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .action-btn-custom {
+        height: 44px;
+        min-width: 170px;
+        padding: 0 18px;
+        border-radius: 8px;
+        border: none;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-sizing: border-box;
+        line-height: 1;
+        font-family: inherit;
+    }
+
+    .btn-blue-custom {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-green-custom {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-gray-custom {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-red-custom {
+        background: #ff4757;
+        color: white;
+    }
+
+    .auto-status-badge {
+        height: 44px;
+        min-width: 105px;
+        padding: 0 14px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    .auto-fetch-alert-custom {
+        display: none;
+        margin-bottom: 15px;
+        background: #dcfce7;
+        color: #166534;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+
 <h2>History Gempa</h2>
 
 @if(session('success'))
@@ -10,31 +83,29 @@
     </div>
 @endif
 
-<div id="autoFetchAlert"
-     style="display:none; margin-bottom:15px; background:#dcfce7; color:#166534; padding:12px 16px; border-radius:8px; font-weight:500;">
+<div id="autoFetchAlert" class="auto-fetch-alert-custom">
     Auto Fetch aktif. Sistem mengambil data BMKG setiap 15 detik selama halaman ini dibuka.
 </div>
 
-<div style="margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+<div class="top-action-row">
 
-    <a href="{{ route('admin.refresh') }}" class="btn btn-refresh">
+    <a href="{{ route('admin.refresh') }}" class="action-btn-custom btn-blue-custom">
         🔄 Refresh Data BMKG
     </a>
 
     <button type="button"
             id="autoFetchBtn"
             onclick="toggleAutoFetch()"
-            class="btn btn-upload"
-            style="border:none; cursor:pointer;">
+            class="action-btn-custom btn-gray-custom">
         ⚪ Auto Fetch OFF
     </button>
 
-    <a href="{{ route('admin.dummyGempa.create') }}" class="btn btn-delete">
+    <a href="{{ route('admin.dummyGempa.create') }}" class="action-btn-custom btn-red-custom">
         🚨 Tambah Data Dummy
     </a>
 
-    <span id="autoFetchStatus"
-          style="font-size:13px; color:#6b7280; font-weight:500;">
+    <span id="autoFetchStatus" class="auto-status-badge">
+        Nonaktif
     </span>
 
 </div>
@@ -111,16 +182,24 @@
     function updateAutoFetchView() {
         if (autoFetchActive) {
             autoFetchBtn.innerText = '🟢 Auto Fetch ON';
-            autoFetchBtn.style.background = '#22c55e';
-            autoFetchBtn.style.color = 'white';
+
+            autoFetchBtn.classList.remove('btn-gray-custom');
+            autoFetchBtn.classList.add('btn-green-custom');
+
             autoFetchAlert.style.display = 'block';
-            autoFetchStatus.innerText = 'Aktif, cek BMKG tiap 15 detik';
+            autoFetchStatus.innerText = 'Aktif';
+            autoFetchStatus.style.background = '#dcfce7';
+            autoFetchStatus.style.color = '#166534';
         } else {
             autoFetchBtn.innerText = '⚪ Auto Fetch OFF';
-            autoFetchBtn.style.background = '#6b7280';
-            autoFetchBtn.style.color = 'white';
+
+            autoFetchBtn.classList.remove('btn-green-custom');
+            autoFetchBtn.classList.add('btn-gray-custom');
+
             autoFetchAlert.style.display = 'none';
             autoFetchStatus.innerText = 'Nonaktif';
+            autoFetchStatus.style.background = '#f3f4f6';
+            autoFetchStatus.style.color = '#6b7280';
         }
     }
 
@@ -141,7 +220,7 @@
     function startAutoFetch() {
         stopAutoFetch();
 
-        autoFetchStatus.innerText = 'Mengambil data BMKG...';
+        autoFetchStatus.innerText = 'Cek BMKG...';
 
         fetchGempa();
 
@@ -164,7 +243,7 @@
                 const now = new Date();
                 const jam = now.toLocaleTimeString('id-ID');
 
-                autoFetchStatus.innerText = 'Terakhir cek: ' + jam;
+                autoFetchStatus.innerText = 'Cek: ' + jam;
 
                 console.log('Auto Fetch:', data);
 
@@ -175,7 +254,10 @@
             })
             .catch(error => {
                 console.error('Auto Fetch Error:', error);
-                autoFetchStatus.innerText = 'Auto fetch gagal. Cek koneksi/server.';
+
+                autoFetchStatus.innerText = 'Gagal';
+                autoFetchStatus.style.background = '#fee2e2';
+                autoFetchStatus.style.color = '#991b1b';
             });
     }
 
