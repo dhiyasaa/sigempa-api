@@ -51,7 +51,7 @@
 
     .auto-status-badge {
         height: 44px;
-        min-width: 105px;
+        min-width: 150px;
         padding: 0 14px;
         border-radius: 8px;
         background: #f3f4f6;
@@ -73,6 +73,16 @@
         border-radius: 8px;
         font-weight: 500;
     }
+
+    .auto-fetch-error-custom {
+        display: none;
+        margin-bottom: 15px;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
 </style>
 
 <h2>History Gempa</h2>
@@ -86,6 +96,8 @@
 <div id="autoFetchAlert" class="auto-fetch-alert-custom">
     Auto Fetch aktif. Sistem mengambil data BMKG setiap 15 detik selama halaman ini dibuka.
 </div>
+
+<div id="autoFetchError" class="auto-fetch-error-custom"></div>
 
 <div class="top-action-row">
 
@@ -177,6 +189,7 @@
 
     const autoFetchBtn = document.getElementById('autoFetchBtn');
     const autoFetchAlert = document.getElementById('autoFetchAlert');
+    const autoFetchError = document.getElementById('autoFetchError');
     const autoFetchStatus = document.getElementById('autoFetchStatus');
 
     function updateAutoFetchView() {
@@ -187,9 +200,6 @@
             autoFetchBtn.classList.add('btn-green-custom');
 
             autoFetchAlert.style.display = 'block';
-            autoFetchStatus.innerText = 'Aktif';
-            autoFetchStatus.style.background = '#dcfce7';
-            autoFetchStatus.style.color = '#166534';
         } else {
             autoFetchBtn.innerText = '⚪ Auto Fetch OFF';
 
@@ -200,7 +210,22 @@
             autoFetchStatus.innerText = 'Nonaktif';
             autoFetchStatus.style.background = '#f3f4f6';
             autoFetchStatus.style.color = '#6b7280';
+            hideAutoFetchError();
         }
+    }
+
+    function showAutoFetchError(message) {
+        autoFetchError.style.display = 'block';
+        autoFetchError.innerText = message;
+
+        autoFetchStatus.innerText = 'Gagal';
+        autoFetchStatus.style.background = '#fee2e2';
+        autoFetchStatus.style.color = '#991b1b';
+    }
+
+    function hideAutoFetchError() {
+        autoFetchError.style.display = 'none';
+        autoFetchError.innerText = '';
     }
 
     function toggleAutoFetch() {
@@ -220,7 +245,11 @@
     function startAutoFetch() {
         stopAutoFetch();
 
+        hideAutoFetchError();
+
         autoFetchStatus.innerText = 'Cek BMKG...';
+        autoFetchStatus.style.background = '#dcfce7';
+        autoFetchStatus.style.color = '#166534';
 
         fetchGempa();
 
@@ -237,27 +266,46 @@
     }
 
     function fetchGempa() {
-        fetch("{{ route('admin.refreshJson') }}")
-            .then(response => response.json())
+        fetch("{{ route('admin.refreshJson') }}", {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(async response => {
+                const text = await response.text();
+
+                let data = null;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Auto fetch gagal membaca response JSON. Coba login ulang atau cek route refresh-json.');
+                }
+
+                return data;
+            })
             .then(data => {
-                const now = new Date();
-                const jam = now.toLocaleTimeString('id-ID');
-
-                autoFetchStatus.innerText = 'Cek: ' + jam;
-
                 console.log('Auto Fetch:', data);
 
-                if (data.has_new_data) {
-                    localStorage.setItem('autoFetchGempa', 'ON');
-                    window.location.reload();
+                if (data.success) {
+                    hideAutoFetchError();
+
+                    autoFetchStatus.innerText = 'Cek: ' + (data.checked_at || '-');
+                    autoFetchStatus.style.background = '#dcfce7';
+                    autoFetchStatus.style.color = '#166534';
+
+                    if (data.has_new_data) {
+                        localStorage.setItem('autoFetchGempa', 'ON');
+                        window.location.reload();
+                    }
+                } else {
+                    showAutoFetchError(data.message || 'Auto fetch gagal.');
                 }
             })
             .catch(error => {
                 console.error('Auto Fetch Error:', error);
-
-                autoFetchStatus.innerText = 'Gagal';
-                autoFetchStatus.style.background = '#fee2e2';
-                autoFetchStatus.style.color = '#991b1b';
+                showAutoFetchError(error.message || 'Auto fetch gagal.');
             });
     }
 

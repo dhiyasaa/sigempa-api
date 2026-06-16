@@ -81,16 +81,26 @@ Route::middleware('auth')->group(function () {
     // REFRESH BMKG MANUAL
     // ===============================
     Route::get('/admin/refresh', function () {
-        $exitCode = Artisan::call('gempa:fetch');
-        $output = trim(Artisan::output());
+        try {
+            $beforeId = Gempa::max('id');
 
-        if ($exitCode === 0) {
+            Artisan::call('gempa:fetch');
+            $output = trim(Artisan::output());
+
+            $afterId = Gempa::max('id');
+
+            if ($afterId != $beforeId) {
+                return redirect('/admin/history')
+                    ->with('success', $output ?: 'Data BMKG terbaru berhasil disimpan!');
+            }
+
             return redirect('/admin/history')
-                ->with('success', $output ?: 'Data BMKG berhasil di-refresh!');
-        }
+                ->with('success', $output ?: 'Data BMKG sudah ada, tidak disimpan ulang.');
 
-        return redirect('/admin/history')
-            ->with('success', $output ?: 'Gagal refresh data BMKG.');
+        } catch (\Throwable $e) {
+            return redirect('/admin/history')
+                ->with('success', 'Gagal refresh BMKG: ' . $e->getMessage());
+        }
     })->name('admin.refresh');
 
 
@@ -98,20 +108,35 @@ Route::middleware('auth')->group(function () {
     // REFRESH BMKG JSON UNTUK AUTO FETCH
     // ===============================
     Route::get('/admin/refresh-json', function () {
-        $beforeId = Gempa::max('id');
+        try {
+            $beforeId = Gempa::max('id');
 
-        $exitCode = Artisan::call('gempa:fetch');
-        $output = trim(Artisan::output());
+            Artisan::call('gempa:fetch');
+            $output = trim(Artisan::output());
 
-        $afterId = Gempa::max('id');
+            $afterId = Gempa::max('id');
 
-        return response()->json([
-            'success' => $exitCode === 0,
-            'message' => $output ?: 'Auto fetch selesai.',
-            'before_id' => $beforeId,
-            'after_id' => $afterId,
-            'has_new_data' => $afterId != $beforeId,
-        ]);
+            $message = $output ?: 'Auto fetch selesai.';
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'before_id' => $beforeId,
+                'after_id' => $afterId,
+                'has_new_data' => $afterId != $beforeId,
+                'checked_at' => now('Asia/Jakarta')->format('H:i:s') . ' WIB',
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Auto fetch error: ' . $e->getMessage(),
+                'before_id' => null,
+                'after_id' => null,
+                'has_new_data' => false,
+                'checked_at' => now('Asia/Jakarta')->format('H:i:s') . ' WIB',
+            ]);
+        }
     })->name('admin.refreshJson');
 
 
