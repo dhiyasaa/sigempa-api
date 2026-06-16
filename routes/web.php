@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
+use App\Models\Gempa;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GempaController;
 use App\Http\Controllers\MitigasiController;
@@ -26,6 +27,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // API UNTUK ANDROID
 Route::get('/api/gempa', [GempaController::class, 'api'])->name('api.gempa');
+
+Route::get('/api/gempa-terbaru', function () {
+    return response()->json(
+        Gempa::orderBy('id', 'desc')->first()
+    );
+})->name('api.gempaTerbaru');
+
 Route::get('/api/berita', [BeritaController::class, 'api'])->name('api.berita');
 Route::get('/api/edukasi', [EdukasiController::class, 'api'])->name('api.edukasi');
 Route::post('/api/umpan-balik', [UmpanBalikController::class, 'storeApi'])->name('api.umpanBalik');
