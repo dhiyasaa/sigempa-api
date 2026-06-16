@@ -36,7 +36,6 @@ Route::get('/api/gempa-terbaru', function () {
 
 Route::get('/api/berita', [BeritaController::class, 'api'])->name('api.berita');
 Route::get('/api/edukasi', [EdukasiController::class, 'api'])->name('api.edukasi');
-Route::post('/api/umpan-balik', [UmpanBalikController::class, 'storeApi'])->name('api.umpanBalik');
 
 // ADMIN AREA WAJIB LOGIN
 Route::middleware('auth')->group(function () {
