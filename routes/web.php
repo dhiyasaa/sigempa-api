@@ -116,28 +116,51 @@ Route::middleware('auth')->group(function () {
 
 
     // ===============================
-    // TAMBAH DATA DUMMY GEMPA UNTUK UJI NOTIF
+    // HALAMAN TAMBAH DATA DUMMY GEMPA
     // ===============================
-    Route::get('/admin/dummy-gempa', function () {
-        $now = now('Asia/Jakarta');
+    Route::get('/admin/dummy-gempa/create', function () {
+        return view('admin.dummy_gempa_create');
+    })->name('admin.dummyGempa.create');
+
+    Route::post('/admin/dummy-gempa/store', function () {
+        $validated = request()->validate([
+            'tanggal' => 'required|string',
+            'jam' => 'required|string',
+            'lintang' => 'required|string',
+            'bujur' => 'required|string',
+            'magnitudo' => 'required|string',
+            'kedalaman' => 'required|string',
+            'wilayah' => 'required|string',
+            'potensi' => 'nullable|string',
+            'status' => 'required|string|in:AMAN,WASPADA,SIAGA',
+        ]);
+
+        $status = strtoupper($validated['status']);
+
+        $color = match ($status) {
+            'SIAGA' => '#EF4444',
+            'WASPADA' => '#FACC15',
+            'AMAN' => '#22C55E',
+            default => '#6B7280',
+        };
 
         Gempa::create([
-            'tanggal' => $now->format('d M Y'),
-            'jam' => $now->format('H:i:s') . ' WIB',
-            'lintang' => '0.281 LS',
-            'bujur' => '100.446 BT',
-            'magnitudo' => '6.4',
-            'kedalaman' => '10 km',
-            'wilayah' => '8 km Barat Daya Padang (DATA UJI NOTIF)',
-            'potensi' => 'Gempa dirasakan dan perlu diteruskan kepada masyarakat',
-            'status' => 'SIAGA',
-            'color' => '#EF4444',
+            'tanggal' => $validated['tanggal'],
+            'jam' => $validated['jam'],
+            'lintang' => $validated['lintang'],
+            'bujur' => $validated['bujur'],
+            'magnitudo' => $validated['magnitudo'],
+            'kedalaman' => $validated['kedalaman'],
+            'wilayah' => $validated['wilayah'],
+            'potensi' => $validated['potensi'] ?? '-',
+            'status' => $status,
+            'color' => $color,
             'source' => 'DUMMY',
         ]);
 
         return redirect('/admin/history')
-            ->with('success', 'Data dummy gempa berhasil ditambahkan untuk uji notifikasi!');
-    })->name('admin.dummyGempa');
+            ->with('success', 'Data dummy gempa berhasil ditambahkan ke history!');
+    })->name('admin.dummyGempa.store');
 
 
     // AUTO FETCH INFO

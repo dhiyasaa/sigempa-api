@@ -29,10 +29,8 @@
         ⚪ Auto Fetch OFF
     </button>
 
-    <a href="{{ route('admin.dummyGempa') }}"
-       class="btn btn-delete"
-       onclick="return confirm('Tambahkan data dummy gempa untuk uji notifikasi?')">
-        🚨 Tambah Dummy Notif
+    <a href="{{ route('admin.dummyGempa.create') }}" class="btn btn-delete">
+        🚨 Tambah Data Dummy
     </a>
 
     <span id="autoFetchStatus"
