@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\UmpanBalik;
 
 class UmpanBalikController extends Controller
@@ -16,21 +18,43 @@ class UmpanBalikController extends Controller
 
     public function storeApi(Request $request)
     {
-        $request->validate([
-            'pesan' => 'required'
-        ]);
+        try {
+            $request->validate([
+                'nama' => 'nullable|string|max:255',
+                'email' => 'nullable|string|max:255',
+                'kategori' => 'nullable|string|max:255',
+                'pesan' => 'required|string',
+            ]);
 
-        UmpanBalik::create([
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'kategori' => $request->kategori,
-            'pesan' => $request->pesan,
-        ]);
+            $insertData = [
+                'nama' => $request->input('nama'),
+                'email' => $request->input('email'),
+                'kategori' => $request->input('kategori'),
+                'pesan' => $request->input('pesan'),
+            ];
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Umpan balik berhasil dikirim.'
-        ]);
+            if (Schema::hasColumn('umpan_baliks', 'created_at')) {
+                $insertData['created_at'] = now();
+            }
+
+            if (Schema::hasColumn('umpan_baliks', 'updated_at')) {
+                $insertData['updated_at'] = now();
+            }
+
+            DB::table('umpan_baliks')->insert($insertData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Umpan balik berhasil dikirim.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim umpan balik.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function delete($id)

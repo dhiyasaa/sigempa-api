@@ -12,6 +12,6 @@ class UmpanBalik extends Model
         'nama',
         'email',
         'kategori',
-        'pesan'
+        'pesan',
     ];
 }
