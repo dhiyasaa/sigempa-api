@@ -115,6 +115,31 @@ Route::middleware('auth')->group(function () {
     })->name('admin.refreshJson');
 
 
+    // ===============================
+    // TAMBAH DATA DUMMY GEMPA UNTUK UJI NOTIF
+    // ===============================
+    Route::get('/admin/dummy-gempa', function () {
+        $now = now('Asia/Jakarta');
+
+        Gempa::create([
+            'tanggal' => $now->format('d M Y'),
+            'jam' => $now->format('H:i:s') . ' WIB',
+            'lintang' => '0.281 LS',
+            'bujur' => '100.446 BT',
+            'magnitudo' => '6.4',
+            'kedalaman' => '10 km',
+            'wilayah' => '8 km Barat Daya Padang (DATA UJI NOTIF)',
+            'potensi' => 'Gempa dirasakan dan perlu diteruskan kepada masyarakat',
+            'status' => 'SIAGA',
+            'color' => '#EF4444',
+            'source' => 'DUMMY',
+        ]);
+
+        return redirect('/admin/history')
+            ->with('success', 'Data dummy gempa berhasil ditambahkan untuk uji notifikasi!');
+    })->name('admin.dummyGempa');
+
+
     // AUTO FETCH INFO
     Route::get('/admin/auto-fetch-info', function () {
         return redirect('/admin/history')
