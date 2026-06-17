@@ -51,11 +51,26 @@
 
     .worker-badge {
         height: 44px;
-        min-width: 150px;
+        min-width: 170px;
         padding: 0 14px;
         border-radius: 8px;
         background: #dcfce7;
         color: #166534;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    .page-refresh-badge {
+        height: 44px;
+        min-width: 190px;
+        padding: 0 14px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #4b5563;
         font-size: 14px;
         font-weight: 600;
         display: inline-flex;
@@ -76,7 +91,8 @@
 <div class="worker-info-box">
     Auto Fetch dijalankan oleh Railway Worker dengan command
     <b>php artisan gempa:auto-fetch</b>.
-    Sistem akan mengambil data BMKG setiap 15 detik selama service worker aktif.
+    Sistem mengambil data BMKG setiap 15 detik selama service worker aktif.
+    Halaman ini juga akan refresh otomatis agar data terbaru langsung terlihat.
 </div>
 
 <div class="top-action-row">
@@ -91,6 +107,10 @@
 
     <span class="worker-badge">
         🟢 Worker Auto Fetch
+    </span>
+
+    <span class="page-refresh-badge" id="pageRefreshInfo">
+        Refresh tampilan: 15 detik
     </span>
 
 </div>
@@ -155,5 +175,21 @@
         @endforelse
     </table>
 </div>
+
+<script>
+    let countdown = 15;
+    const info = document.getElementById('pageRefreshInfo');
+
+    setInterval(function () {
+        countdown--;
+
+        if (countdown > 0) {
+            info.innerText = 'Refresh tampilan: ' + countdown + ' detik';
+        } else {
+            info.innerText = 'Memuat ulang data...';
+            window.location.reload();
+        }
+    }, 1000);
+</script>
 
 @endsection
