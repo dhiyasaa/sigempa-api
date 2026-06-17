@@ -25,35 +25,35 @@ class GempaController extends Controller
     }
 
     public function history()
-    {
-        $data = Gempa::where('source', 'BMKG')
-            ->latest()
-            ->get()
-            ->map(function ($g) {
-                $dec = $this->hitungDEC($g->magnitudo, $g->kedalaman);
+{
+    $data = Gempa::whereIn('source', ['BMKG', 'DUMMY'])
+        ->latest()
+        ->get()
+        ->map(function ($g) {
+            $dec = $this->hitungDEC($g->magnitudo, $g->kedalaman);
 
-                if (!$g->status || !$g->color) {
-                    $g->update([
-                        'status' => $dec['status'],
-                        'color' => $dec['color'],
-                    ]);
-                }
+            if (!$g->status || !$g->color) {
+                $g->update([
+                    'status' => $dec['status'],
+                    'color' => $dec['color'],
+                ]);
+            }
 
-                return [
-                    'id' => $g->id,
-                    'tanggal' => $g->tanggal,
-                    'jam' => $g->jam,
-                    'magnitudo' => (float) $g->magnitudo,
-                    'kedalaman' => $this->ambilAngkaKedalaman($g->kedalaman),
-                    'wilayah' => $g->wilayah,
-                    'status' => $g->status ?? $dec['status'],
-                    'color' => $g->color ?? $dec['color'],
-                    'source' => $g->source,
-                ];
-            });
+            return [
+                'id' => $g->id,
+                'tanggal' => $g->tanggal,
+                'jam' => $g->jam,
+                'magnitudo' => (float) $g->magnitudo,
+                'kedalaman' => $this->ambilAngkaKedalaman($g->kedalaman),
+                'wilayah' => $g->wilayah,
+                'status' => $g->status ?? $dec['status'],
+                'color' => $g->color ?? $dec['color'],
+                'source' => $g->source,
+            ];
+        });
 
-        return view('admin.history', compact('data'));
-    }
+    return view('admin.history', compact('data'));
+}
 
     public function map()
     {
