@@ -11,7 +11,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\EdukasiController;
 use App\Http\Controllers\UmpanBalikController;
-use App\Http\Controllers\FcmTokenController;
 
 Route::get('/', function () {
     return redirect('/admin');
@@ -31,9 +30,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // API UNTUK ANDROID
 // ===============================
 Route::get('/api/gempa', [GempaController::class, 'api'])->name('api.gempa');
-
-Route::post('/api/fcm-token', [FcmTokenController::class, 'store'])
-    ->name('api.fcmToken');
 
 Route::get('/api/gempa-terbaru', function () {
     return response()->json(

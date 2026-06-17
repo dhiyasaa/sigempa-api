@@ -1,19 +1,23 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GempaController;
+use App\Http\Controllers\BeritaController;
+use App\Http\Controllers\EdukasiController;
+use App\Http\Controllers\UmpanBalikController;
+use App\Http\Controllers\FcmTokenController;
 
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+Route::get('/gempa', [GempaController::class, 'api'])
+    ->name('api.gempa');
+
+Route::get('/berita', [BeritaController::class, 'api'])
+    ->name('api.berita');
+
+Route::get('/edukasi', [EdukasiController::class, 'api'])
+    ->name('api.edukasi');
+
+Route::post('/umpan-balik', [UmpanBalikController::class, 'storeApi'])
+    ->name('api.umpanBalik');
+
+Route::post('/fcm-token', [FcmTokenController::class, 'store'])
+    ->name('api.fcmToken');
