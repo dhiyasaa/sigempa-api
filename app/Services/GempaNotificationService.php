@@ -45,20 +45,34 @@ class GempaNotificationService
             $radius = (float) ($item->radius_km ?? 100);
 
             if ($jarak <= $radius) {
-                $status = $gempa->status ?: 'SIAGA';
+                $status = strtoupper($gempa->status ?: 'SIAGA');
 
-                $title = match (strtoupper($status)) {
+                $title = match ($status) {
                     'SIAGA' => '🚨 PERINGATAN DINI GEMPA BUMI',
                     'WASPADA' => '⚠️ PERINGATAN GEMPA',
                     'AMAN' => 'ℹ️ INFO GEMPA TERKINI',
                     default => '🚨 PERINGATAN GEMPA',
                 };
 
-                $body = 'Gempa terdeteksi dalam radius ' . round($radius) . ' km dari lokasi kamu.';
+                $jarakText = number_format($jarak, 1, '.', '');
+
+                // Body singkat, dipakai data aplikasi
+                $bodySingkat = 'Gempa terdeteksi dalam radius ' . round($radius) . ' km';
+
+                // Body lengkap yang tampil di notifikasi HP
+                $bodyLengkap =
+                    'Gempa terdeteksi dalam radius ' . round($radius) . " km\n" .
+                    'Jarak dari lokasi kamu: ' . $jarakText . " km\n" .
+                    'Tingkat Bahaya: ' . $status . "\n" .
+                    'Lokasi: ' . $gempa->wilayah . "\n" .
+                    'Magnitudo: M ' . $gempa->magnitudo . "\n" .
+                    'Kedalaman: ' . $gempa->kedalaman . "\n" .
+                    'Ketuk untuk detail dan panduan mitigasi';
 
                 $fcmService->sendToToken($item->token, [
                     'title' => $title,
-                    'body' => $body,
+                    'body' => $bodySingkat,
+                    'notification_body' => $bodyLengkap,
                     'gempa_id' => $gempa->id,
                     'tanggal' => $gempa->tanggal,
                     'jam' => $gempa->jam,
@@ -66,12 +80,12 @@ class GempaNotificationService
                     'magnitudo' => $gempa->magnitudo,
                     'kedalaman' => $gempa->kedalaman,
                     'status' => $status,
-                    'jarak_km' => number_format($jarak, 1, '.', ''),
+                    'jarak_km' => $jarakText,
                 ]);
 
                 Log::info('FCM diproses untuk token dalam radius.', [
                     'gempa_id' => $gempa->id,
-                    'jarak_km' => number_format($jarak, 1, '.', ''),
+                    'jarak_km' => $jarakText,
                     'radius_km' => $radius,
                 ]);
             } else {
