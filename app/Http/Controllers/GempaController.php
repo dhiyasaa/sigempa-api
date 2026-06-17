@@ -64,7 +64,7 @@ class GempaController extends Controller
 
     public function api()
 {
-    return Gempa::where('source', 'BMKG')
+    return Gempa::whereIn('source', ['BMKG', 'DUMMY'])
         ->latest()
         ->get();
 }
