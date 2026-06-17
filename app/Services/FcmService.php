@@ -49,7 +49,7 @@ class FcmService
                     'android' => [
                         'priority' => 'HIGH',
                         'notification' => [
-                            'channel_id' => 'sigempa_fcm_alarm_channel_v1',
+                            'channel_id' => 'sigempa_alarm_channel_v3',
                             'sound' => 'default',
                             'click_action' => 'OPEN_GEMPA_DETAIL',
                         ],
