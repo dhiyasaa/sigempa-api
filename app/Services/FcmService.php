@@ -66,6 +66,10 @@ class FcmService
                 return false;
             }
 
+            Log::info('FCM berhasil dikirim.', [
+                'token' => substr($token, 0, 20) . '...',
+            ]);
+
             return true;
 
         } catch (\Throwable $e) {
