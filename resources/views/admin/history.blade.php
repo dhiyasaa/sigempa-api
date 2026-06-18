@@ -88,13 +88,6 @@
     </div>
 @endif
 
-<div class="worker-info-box">
-    Auto Fetch dijalankan oleh Railway Worker dengan command
-    <b>php artisan gempa:auto-fetch</b>.
-    Sistem mengambil data BMKG setiap 15 detik selama service worker aktif.
-    Halaman ini juga akan refresh otomatis agar data terbaru langsung terlihat.
-</div>
-
 <div class="top-action-row">
 
     <a href="{{ route('admin.refresh') }}" class="action-btn-custom btn-blue-custom">
