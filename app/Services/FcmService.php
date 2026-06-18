@@ -27,20 +27,28 @@ class FcmService
 
             $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
-            /*
-             * PENTING:
-             * Ini sengaja DATA-ONLY, tidak pakai 'notification'.
-             * Tujuannya supaya notif dibuat oleh MyFirebaseMessagingService.kt,
-             * jadi bunyinya bisa pakai TYPE_ALARM, bukan bunyi notif "ting".
-             */
+            $title = $data['title'] ?? '🚨 PERINGATAN GEMPA';
+            $body = $data['body'] ?? 'Gempa terdeteksi dalam radius peringatan kamu.';
+            $notificationBody = $data['notification_body'] ?? $body;
+
             $payload = [
                 'message' => [
                     'token' => $token,
+
+                    'notification' => [
+                        'title' => (string) $title,
+                        'body' => (string) $notificationBody,
+                    ],
 
                     'data' => $this->stringifyData($data),
 
                     'android' => [
                         'priority' => 'HIGH',
+                        'notification' => [
+                            'channel_id' => 'gempa_alarm_channel_v5',
+                            'sound' => 'default',
+                            'click_action' => 'OPEN_GEMPA_DETAIL',
+                        ],
                     ],
                 ],
             ];
