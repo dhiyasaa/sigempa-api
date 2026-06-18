@@ -23,7 +23,6 @@
     }
 
     .dummy-form-group input,
-    .dummy-form-group select,
     .dummy-form-group textarea {
         width: 100%;
         padding: 11px 12px;
@@ -37,7 +36,6 @@
     }
 
     .dummy-form-group input:focus,
-    .dummy-form-group select:focus,
     .dummy-form-group textarea:focus {
         border-color: #675EF7;
         box-shadow: 0 0 0 3px rgba(103, 94, 247, 0.12);
@@ -53,6 +51,17 @@
     .dummy-source-input {
         background: #f3f4f6;
         color: #6b7280;
+    }
+
+    .dummy-info-box {
+        margin-top: 6px;
+        padding: 11px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #4b5563;
+        font-size: 14px;
+        box-sizing: border-box;
     }
 
     .dummy-action-row {
@@ -185,17 +194,10 @@
 
             <div class="dummy-form-group">
                 <label>Status Risiko</label>
-                <select name="status">
-                    <option value="SIAGA" {{ old('status', 'SIAGA') == 'SIAGA' ? 'selected' : '' }}>
-                        SIAGA
-                    </option>
-                    <option value="WASPADA" {{ old('status') == 'WASPADA' ? 'selected' : '' }}>
-                        WASPADA
-                    </option>
-                    <option value="AMAN" {{ old('status') == 'AMAN' ? 'selected' : '' }}>
-                        AMAN
-                    </option>
-                </select>
+                <div class="dummy-info-box">
+                    Otomatis ditentukan oleh model DEC setelah data disimpan.
+                </div>
+                <small>Status diproses dari magnitudo dan kedalaman menggunakan centroid DEC.</small>
             </div>
 
             <div class="dummy-form-group">

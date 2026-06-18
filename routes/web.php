@@ -11,6 +11,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\EdukasiController;
 use App\Http\Controllers\UmpanBalikController;
+use App\Services\DecRiskService;
 
 Route::get('/', function () {
     return redirect('/admin');
@@ -121,17 +122,17 @@ Route::middleware('auth')->group(function () {
             'kedalaman' => 'required|string',
             'wilayah' => 'required|string',
             'potensi' => 'nullable|string',
-            'status' => 'required|string|in:AMAN,WASPADA,SIAGA',
         ]);
 
-        $status = strtoupper($validated['status']);
+        // Status risiko otomatis dihitung dari titik pusat DEC
+        // Titik pusat diambil dari tabel cluster_centroids
+        $dec = app(DecRiskService::class)->predictStatus(
+            $validated['magnitudo'],
+            $validated['kedalaman']
+        );
 
-        $color = match ($status) {
-            'SIAGA' => '#EF4444',
-            'WASPADA' => '#FACC15',
-            'AMAN' => '#22C55E',
-            default => '#6B7280',
-        };
+        $status = strtoupper($dec['status']);
+        $color = $dec['color'];
 
         $dataDummy = Gempa::create([
             'tanggal' => $validated['tanggal'],
@@ -152,7 +153,10 @@ Route::middleware('auth')->group(function () {
             ->sendGempaNotification($dataDummy);
 
         return redirect('/admin/history')
-            ->with('success', 'Data dummy gempa berhasil ditambahkan ke history dan notifikasi dikirim!');
+            ->with(
+                'success',
+                'Data dummy berhasil ditambahkan. Status risiko otomatis dari DEC: ' . $status
+            );
     })->name('admin.dummyGempa.store');
 
 
