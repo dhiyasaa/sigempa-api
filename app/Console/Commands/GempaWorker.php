@@ -12,7 +12,10 @@ class GempaWorker extends Command
 
     public function handle()
     {
-        $this->info('===== Gempa Worker Started =====');
+        $this->info("========================================");
+        $this->info(" Auto Fetch Gempa ON");
+        $this->info(" Tekan CTRL + C untuk menghentikan.");
+        $this->info("========================================");
 
         while (true) {
 
@@ -20,11 +23,25 @@ class GempaWorker extends Command
 
                 Artisan::call('gempa:fetch');
 
-                $this->info(now() . ' - ' . trim(Artisan::output()));
+                $output = trim(Artisan::output());
+
+                if (str_contains($output, 'berhasil disimpan')) {
+
+                    $this->info("[" . now()->format('H:i:s') . "] ✅ Gempa baru ditemukan & disimpan.");
+
+                } elseif (str_contains($output, 'sudah ada')) {
+
+                    $this->line("[" . now()->format('H:i:s') . "] ℹ️ Tidak ada gempa baru.");
+
+                } else {
+
+                    $this->line("[" . now()->format('H:i:s') . "] " . $output);
+
+                }
 
             } catch (\Throwable $e) {
 
-                $this->error(now() . ' - ' . $e->getMessage());
+                $this->error("[" . now()->format('H:i:s') . "] ERROR : " . $e->getMessage());
 
             }
 
