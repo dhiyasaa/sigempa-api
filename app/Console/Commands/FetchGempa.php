@@ -17,6 +17,7 @@ class FetchGempa extends Command
         $url = 'https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json';
 
         try {
+
             $response = Http::withOptions([
                 'verify' => false,
             ])
@@ -24,14 +25,14 @@ class FetchGempa extends Command
                 ->get($url);
 
             if (!$response->successful()) {
-                $this->error('Gagal mengambil data BMKG. Status: ' . $response->status());
+                $this->line('ERROR');
                 return Command::FAILURE;
             }
 
             $json = $response->json();
 
             if (!isset($json['Infogempa']['gempa'])) {
-                $this->error('Format data BMKG tidak sesuai.');
+                $this->line('ERROR');
                 return Command::FAILURE;
             }
 
@@ -53,7 +54,7 @@ class FetchGempa extends Command
                 ->exists();
 
             if ($sudahAda) {
-                $this->info('Data BMKG sudah ada, tidak disimpan ulang.');
+                $this->line('NO_NEW_DATA');
                 return Command::SUCCESS;
             }
 
@@ -76,15 +77,14 @@ class FetchGempa extends Command
                 'source' => 'BMKG',
             ]);
 
-            $this->info('Data BMKG terbaru berhasil disimpan.');
-            $this->info('Waktu: ' . $tanggal . ' ' . $jam);
-            $this->info('Wilayah: ' . $wilayah);
-            $this->info('Status: ' . $cluster['status']);
+            $this->line('NEW_DATA');
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
-            $this->error('Gagal fetch BMKG: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+
+            $this->line('ERROR');
+
             return Command::FAILURE;
         }
     }
@@ -101,6 +101,7 @@ class FetchGempa extends Command
         $minDistance = null;
 
         foreach ($centroids as $c) {
+
             $distance = sqrt(
                 pow($mag - (float) $c->magnitudo, 2) +
                 pow($depth - (float) $c->kedalaman, 2)
