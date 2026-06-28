@@ -23,27 +23,23 @@ class GempaWorker extends Command
 
                 Artisan::call('gempa:fetch');
 
-                $output = trim(Artisan::output());
+$output = trim(Artisan::output());
 
-                if (str_contains($output, 'NEW_DATA')) {
+$this->warn("OUTPUT = [" . $output . "]");
 
-                    $this->info(
-                        "[" . now()->format('H:i:s') . "] ✅ Gempa baru ditemukan & disimpan."
-                    );
+if (str_contains($output, 'NEW_DATA')) {
 
-                } elseif (str_contains($output, 'NO_NEW_DATA')) {
+    $this->info("[" . now()->format('H:i:s') . "] ✅ Gempa baru ditemukan & disimpan.");
 
-                    $this->line(
-                        "[" . now()->format('H:i:s') . "] ℹ️ Tidak ada gempa baru."
-                    );
+} elseif (str_contains($output, 'NO_NEW_DATA')) {
 
-                } else {
+    $this->line("[" . now()->format('H:i:s') . "] ℹ️ Tidak ada gempa baru.");
 
-                    $this->error(
-                        "[" . now()->format('H:i:s') . "] ❌ Gagal mengambil data BMKG."
-                    );
+} else {
 
-                }
+    $this->error("[" . now()->format('H:i:s') . "] ❌ Gagal mengambil data BMKG.");
+
+}
 
             } catch (\Throwable $e) {
 
