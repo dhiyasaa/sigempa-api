@@ -25,20 +25,19 @@ class GempaWorker extends Command
 
 $output = trim(Artisan::output());
 
-$this->warn("OUTPUT = [" . $output . "]");
+switch ($output) {
 
-if (str_contains($output, 'NEW_DATA')) {
+    case 'NEW_DATA':
+        $this->info("[" . now()->format('H:i:s') . "] ✅ Gempa baru ditemukan & disimpan.");
+        break;
 
-    $this->info("[" . now()->format('H:i:s') . "] ✅ Gempa baru ditemukan & disimpan.");
+    case 'NO_NEW_DATA':
+        $this->line("[" . now()->format('H:i:s') . "] ℹ️ Tidak ada gempa baru.");
+        break;
 
-} elseif (str_contains($output, 'NO_NEW_DATA')) {
-
-    $this->line("[" . now()->format('H:i:s') . "] ℹ️ Tidak ada gempa baru.");
-
-} else {
-
-    $this->error("[" . now()->format('H:i:s') . "] ❌ Gagal mengambil data BMKG.");
-
+    default:
+        $this->error("[" . now()->format('H:i:s') . "] ❌ Gagal mengambil data BMKG.");
+        break;
 }
 
             } catch (\Throwable $e) {
