@@ -12,6 +12,7 @@ use App\Http\Controllers\BeritaController;
 use App\Http\Controllers\EdukasiController;
 use App\Http\Controllers\UmpanBalikController;
 use App\Services\DecRiskService;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return redirect('/admin');
