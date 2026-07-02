@@ -205,4 +205,16 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/admin/umpan-balik/{id}', [UmpanBalikController::class, 'delete'])
         ->name('admin.umpanBalik.delete');
+    
+    Route::get('/admin/users', [UserController::class, 'index'])
+    ->name('admin.users');
+
+Route::post('/admin/users', [UserController::class, 'store'])
+    ->name('admin.users.store');
+
+Route::put('/admin/users/{id}', [UserController::class, 'update'])
+    ->name('admin.users.update');
+
+Route::delete('/admin/users/{id}', [UserController::class, 'delete'])
+    ->name('admin.users.delete');
 });

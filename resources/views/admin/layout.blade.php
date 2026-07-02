@@ -223,6 +223,9 @@
 <a href="/admin/umpan-balik" class="{{ request()->is('admin/umpan-balik') ? 'active' : '' }}">
     Umpan Balik
 </a>
+<a href="/admin/users" class="{{ request()->is('admin/users') ? 'active' : '' }}">
+    Administrator
+</a>
 
         <form action="{{ route('logout') }}" method="POST">
             @csrf
