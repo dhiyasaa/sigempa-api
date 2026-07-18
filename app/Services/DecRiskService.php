@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\ClusterCentroid;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class DecRiskService
 {
@@ -11,36 +12,33 @@ class DecRiskService
         $mag = $this->ambilAngkaMagnitudo($magnitudo);
         $depth = $this->ambilAngkaKedalaman($kedalaman);
 
-        $centroids = ClusterCentroid::all();
+        $pythonScript = base_path('app/Services/Python/predict_dec.py');
 
-        if ($centroids->count() == 0) {
-            return $this->fallbackStatus($mag, $depth);
+        $process = new Process([
+            'py',
+            '-3.11',
+            $pythonScript,
+            $mag,
+            $depth
+        ]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
         }
 
-        $closest = null;
-        $minDistance = null;
+        $result = json_decode($process->getOutput(), true);
 
-        foreach ($centroids as $centroid) {
-            $distance = sqrt(
-                pow($mag - (float) $centroid->magnitudo, 2) +
-                pow($depth - (float) $centroid->kedalaman, 2)
-            );
-
-            if ($minDistance === null || $distance < $minDistance) {
-                $minDistance = $distance;
-                $closest = $centroid;
-            }
+        if (!$result) {
+            throw new \Exception('Output JSON dari predict_dec.py tidak valid.');
         }
-
-        $status = strtoupper($closest->status ?? '-');
-        $color = $closest->color ?? $this->warnaStatus($status);
 
         return [
-            'cluster' => $closest->cluster ?? '-',
-            'label' => $closest->label ?? '-',
-            'status' => $status,
-            'color' => $color,
-            'jarak' => round($minDistance, 3),
+            'cluster' => $result['cluster'],
+            'label' => $result['label'],
+            'status' => $result['status'],
+            'color' => $result['color'],
             'magnitudo' => $mag,
             'kedalaman' => $depth,
         ];
@@ -62,42 +60,5 @@ class DecRiskService
         $angka = preg_replace('/[^0-9]/', '', (string) $kedalaman);
 
         return $angka !== '' ? (int) $angka : 0;
-    }
-
-    private function warnaStatus(string $status): string
-    {
-        return match (strtoupper($status)) {
-            'SIAGA' => '#EF4444',
-            'WASPADA' => '#FACC15',
-            'AMAN' => '#22C55E',
-            default => '#6B7280',
-        };
-    }
-
-    private function fallbackStatus(float $mag, int $depth): array
-    {
-        if ($mag >= 5.5 && $depth <= 70) {
-            $status = 'SIAGA';
-            $cluster = 'C2';
-            $label = 'Tinggi';
-        } elseif ($mag >= 4.5) {
-            $status = 'WASPADA';
-            $cluster = 'C1';
-            $label = 'Sedang';
-        } else {
-            $status = 'AMAN';
-            $cluster = 'C0';
-            $label = 'Rendah';
-        }
-
-        return [
-            'cluster' => $cluster,
-            'label' => $label,
-            'status' => $status,
-            'color' => $this->warnaStatus($status),
-            'jarak' => 0,
-            'magnitudo' => $mag,
-            'kedalaman' => $depth,
-        ];
     }
 }
