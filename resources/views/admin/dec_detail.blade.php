@@ -6,39 +6,64 @@
 
 <div class="card p-3 mb-3">
     <b>DATA INPUT</b><br>
-    Magnitudo: {{ $gempa->magnitudo }}<br>
-    Kedalaman: {{ $gempa->kedalaman }}<br>
+    Magnitudo : {{ $gempa->magnitudo }}<br>
+    Kedalaman : {{ $gempa->kedalaman }}
 </div>
 
 <div class="card p-3 mb-3">
     <b>NORMALISASI</b><br>
-    M = {{ number_format($mNorm, 3) }}<br>
-    D = {{ number_format($dNorm, 3) }}
+    M = {{ number_format($mNorm,3) }}<br>
+    D = {{ number_format($dNorm,3) }}
 </div>
 
 <div class="card p-3 mb-3">
-    <b>CENTROID</b><br>
-    Tinggi = ({{ $c_tinggi[0] }}, {{ $c_tinggi[1] }})<br>
-    Sedang = ({{ $c_sedang[0] }}, {{ $c_sedang[1] }})<br>
-    Rendah = ({{ $c_rendah[0] }}, {{ $c_rendah[1] }})
-</div>
+    <b>PROSES DEEP EMBEDDED CLUSTERING (DEC)</b>
 
-<div class="card p-3 mb-3">
-    <b>JARAK</b><br>
-    Tinggi = {{ number_format($dTinggi, 3) }}<br>
-    Sedang = {{ number_format($dSedang, 3) }}<br>
-    Rendah = {{ number_format($dRendah, 3) }}
+    <div class="text-center mt-4 mb-2" style="font-size:18px; line-height:2;">
+        Input Gempa
+        <br>↓<br>
+
+        Normalisasi
+        <br>↓<br>
+
+        Encoder
+        <br>↓<br>
+
+        Deep Embedded Clustering
+        <br>↓<br>
+
+        Prediksi Cluster
+    </div>
+
+    <hr>
+
+    <small class="text-muted">
+        Model melakukan klasifikasi menggunakan encoder dan model
+        Deep Embedded Clustering (DEC) yang telah dilatih sebelumnya.
+        Hasil prediksi diperoleh langsung dari model tanpa menghitung
+        jarak centroid secara manual.
+    </small>
 </div>
 
 <div class="card p-3 mb-3"
      style="
         background: {{ $color }}20;
-        border: 1px solid {{ $color }};
-        border-left: 6px solid {{ $color }};
+        border:1px solid {{ $color }};
+        border-left:6px solid {{ $color }};
      ">
-    <b>HASIL</b><br>
-    Cluster = {{ $cluster }}<br>
-    Status = <b>{{ $status }}</b>
+
+    <b>HASIL PREDIKSI</b><br><br>
+
+    <b>Cluster</b><br>
+    {{ $cluster }}
+
+    <br><br>
+
+    <b>Status Risiko</b><br>
+    <span style="color:{{ $color }}">
+        <b>{{ $status }}</b>
+    </span>
+
 </div>
 
 @endsection
