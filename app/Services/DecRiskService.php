@@ -15,12 +15,12 @@ class DecRiskService
         $pythonScript = base_path('app/Services/Python/predict_dec.py');
 
         $process = new Process([
-            'py',
-            '-3.11',
-            $pythonScript,
-            $mag,
-            $depth
-        ]);
+    'py',
+    '-3.11',
+    $pythonScript,
+    $mag,
+    $depth
+]);
 
         $process->run();
 
