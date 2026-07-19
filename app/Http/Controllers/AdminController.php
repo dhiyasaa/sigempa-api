@@ -40,12 +40,12 @@ class AdminController extends Controller
     // Kirim ke FastAPI
     // ===========================
     $response = Http::post(
-        'http://127.0.0.1:8001/predict',
-        [
-            'magnitudo' => (float) $g->magnitudo,
-            'kedalaman' => $depth
-        ]
-    );
+    env('DEC_API_URL') . '/predict',
+    [
+        'magnitudo' => (float) $g->magnitudo,
+        'kedalaman' => $depth
+    ]
+);
 
     if (!$response->successful()) {
         abort(500, 'Gagal terhubung ke DEC API');
