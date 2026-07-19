@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Gempa;
-use App\Services\DecRiskService;
+use Illuminate\Support\Facades\Http;
 
 class DecController extends Controller
 {
@@ -11,32 +11,44 @@ class DecController extends Controller
     {
         $gempa = Gempa::findOrFail($id);
 
-        $mag = (float) $gempa->magnitudo;
-        $depth = (int) str_replace(' km', '', $gempa->kedalaman);
+        $depth = (float) preg_replace('/[^0-9.]/', '', $gempa->kedalaman);
 
-        // hanya untuk ditampilkan
-        $Mmin = 2;
-        $Mmax = 8;
-        $Dmin = 0;
-        $Dmax = 300;
+        $response = Http::post(
+            env('DEC_API_URL') . '/predict',
+            [
+                'magnitudo' => (float) $gempa->magnitudo,
+                'kedalaman' => $depth
+            ]
+        );
 
-        $mNorm = ($mag - $Mmin) / ($Mmax - $Mmin);
-        $dNorm = ($depth - $Dmin) / ($Dmax - $Dmin);
+        if (!$response->successful()) {
+            abort(500, 'Gagal mengambil data dari DEC API');
+        }
 
-        $riskService = new DecRiskService();
-
-        $result = $riskService->predictStatus($mag, $depth);
+        $dec = $response->json();
 
         return view('admin.dec_detail', [
-            'gempa' => $gempa,
-            'mag' => $mag,
-            'depth' => $depth,
-            'mNorm' => round($mNorm,3),
-            'dNorm' => round($dNorm,3),
 
-            'cluster' => $result['label'],
-            'status' => $result['status'],
-            'color' => $result['color'],
+            'g' => $gempa,
+
+            'input' => $dec['input'],
+
+            'normalized' => $dec['normalized'],
+
+            'latent' => $dec['latent'],
+
+            'centroids' => $dec['centroids'],
+
+            'probability' => $dec['probability'],
+
+            'cluster' => $dec['cluster'],
+
+            'label' => $dec['label'],
+
+            'status' => $dec['status'],
+
+            'color' => $dec['color']
+
         ]);
     }
 }
