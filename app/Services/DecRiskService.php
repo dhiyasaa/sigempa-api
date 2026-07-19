@@ -4,44 +4,37 @@ namespace App\Services;
 
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Illuminate\Support\Facades\Http;
 
 class DecRiskService
 {
-    public function predictStatus($magnitudo, $kedalaman): array
-    {
-        $mag = $this->ambilAngkaMagnitudo($magnitudo);
-        $depth = $this->ambilAngkaKedalaman($kedalaman);
+    public function predictStatus($mag, $depth)
+{
+    $response = Http::timeout(30)->post(
+        env('DEC_API_URL') . '/predict',
+        [
+            'magnitudo' => (float) $mag,
+            'kedalaman' => (float) $depth,
+        ]
+    );
 
-        $pythonScript = base_path('app/Services/Python/predict_dec.py');
-
-        $process = new Process([
-    'python3',
-    $pythonScript,
-    $mag,
-    $depth
-]);
-
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-
-        $result = json_decode($process->getOutput(), true);
-
-        if (!$result) {
-            throw new \Exception('Output JSON dari predict_dec.py tidak valid.');
-        }
-
-        return [
-            'cluster' => $result['cluster'],
-            'label' => $result['label'],
-            'status' => $result['status'],
-            'color' => $result['color'],
-            'magnitudo' => $mag,
-            'kedalaman' => $depth,
-        ];
+    if (!$response->successful()) {
+        throw new \Exception(
+            'DEC API Error: ' . $response->body()
+        );
     }
+
+    $result = $response->json();
+
+    return [
+        'cluster'    => $result['cluster'],
+        'label'      => $result['label'],
+        'status'     => $result['status'],
+        'color'      => $result['color'],
+        'magnitudo'  => $mag,
+        'kedalaman'  => $depth,
+    ];
+}
 
     private function ambilAngkaMagnitudo($magnitudo): float
     {
