@@ -2,67 +2,235 @@
 
 @section('content')
 
-<h4>Detail Perhitungan DEC</h4>
+<h3 class="mb-4">Detail Proses Deep Embedded Clustering (DEC)</h3>
 
-<div class="card p-3 mb-3">
-    <b>DATA INPUT</b><br>
-    Magnitudo : {{ $gempa->magnitudo }}<br>
-    Kedalaman : {{ $gempa->kedalaman }}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Data Input Gempa
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered mb-0">
+            <tr>
+                <th width="220">Magnitudo</th>
+                <td>{{ $input['magnitudo'] }}</td>
+            </tr>
+            <tr>
+                <th>Kedalaman</th>
+                <td>{{ $input['kedalaman'] }} km</td>
+            </tr>
+        </table>
+    </div>
 </div>
 
-<div class="card p-3 mb-3">
-    <b>NORMALISASI</b><br>
-    M = {{ number_format($mNorm,3) }}<br>
-    D = {{ number_format($dNorm,3) }}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-info text-white">
+        Hasil Normalisasi
+    </div>
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th>Magnitudo</th>
+                <td>{{ number_format($normalized['magnitudo'],6) }}</td>
+            </tr>
+
+            <tr>
+                <th>Kedalaman</th>
+                <td>{{ number_format($normalized['kedalaman'],6) }}</td>
+            </tr>
+
+        </table>
+
+    </div>
 </div>
 
-<div class="card p-3 mb-3">
-    <b>PROSES DEEP EMBEDDED CLUSTERING (DEC)</b>
-
-    <div class="text-center mt-4 mb-2" style="font-size:18px; line-height:2;">
-        Input Gempa
-        <br>↓<br>
-
-        Normalisasi
-        <br>↓<br>
-
-        Encoder
-        <br>↓<br>
-
-        Deep Embedded Clustering
-        <br>↓<br>
-
-        Prediksi Cluster
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white">
+        Output Encoder (Latent Representation)
     </div>
 
-    <hr>
+    <div class="card-body">
 
-    <small class="text-muted">
-        Model melakukan klasifikasi menggunakan encoder dan model
-        Deep Embedded Clustering (DEC) yang telah dilatih sebelumnya.
-        Hasil prediksi diperoleh langsung dari model tanpa menghitung
-        jarak centroid secara manual.
-    </small>
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Dimensi</th>
+                    <th>Nilai</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach($latent as $i => $z)
+
+                <tr>
+                    <td>Z{{ $i+1 }}</td>
+                    <td>{{ number_format($z,6) }}</td>
+                </tr>
+
+                @endforeach
+
+            </tbody>
+
+        </table>
+
+    </div>
 </div>
 
-<div class="card p-3 mb-3"
-     style="
-        background: {{ $color }}20;
-        border:1px solid {{ $color }};
-        border-left:6px solid {{ $color }};
-     ">
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning">
+        Centroid Hasil Training DEC
+    </div>
 
-    <b>HASIL PREDIKSI</b><br><br>
+    <div class="card-body">
 
-    <b>Cluster</b><br>
-    {{ $cluster }}
+        <table class="table table-bordered">
 
-    <br><br>
+            <thead>
 
-    <b>Status Risiko</b><br>
-    <span style="color:{{ $color }}">
-        <b>{{ $status }}</b>
-    </span>
+                <tr>
+                    <th>Cluster</th>
+                    <th>Koordinat</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach($centroids as $i => $row)
+
+                <tr>
+
+                    <td>Cluster {{ $i }}</td>
+
+                    <td>
+
+                        (
+
+                        @foreach($row as $j=>$v)
+
+                            {{ number_format($v,6) }}
+
+                            @if(!$loop->last)
+
+                                ,
+
+                            @endif
+
+                        @endforeach
+
+                        )
+
+                    </td>
+
+                </tr>
+
+                @endforeach
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header bg-dark text-white">
+        Probabilitas Soft Assignment DEC
+    </div>
+
+    <div class="card-body">
+
+        @foreach($probability as $i=>$p)
+
+            <label>
+                Cluster {{ $i }}
+                ({{ number_format($p*100,2) }}%)
+            </label>
+
+            <div class="progress mb-3">
+
+                <div
+                    class="progress-bar"
+
+                    style="width:{{ $p*100 }}%;">
+
+                    {{ number_format($p*100,2) }}%
+
+                </div>
+
+            </div>
+
+        @endforeach
+
+    </div>
+
+</div>
+
+<div class="card shadow-lg border-0">
+
+    <div
+        class="card-header text-white"
+        style="background:{{ $color }}">
+
+        Hasil Prediksi DEC
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th width="220">
+                    Cluster
+                </th>
+
+                <td>
+                    {{ $cluster }}
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+                    Label
+                </th>
+
+                <td>
+                    {{ $label }}
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+                    Status Risiko
+                </th>
+
+                <td>
+
+                    <span
+                        class="badge"
+                        style="background:{{ $color }}">
+
+                        {{ $status }}
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
 
 </div>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Gempa;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 
 class AdminController extends Controller
 {
@@ -29,46 +30,51 @@ class AdminController extends Controller
     // =========================
     // 🔥 DEC DETAIL (STEP BY STEP)
     // =========================
-    public function decDetail($id) {
-        $g = Gempa::findOrFail($id);
+    public function decDetail($id)
+{
+    $g = Gempa::findOrFail($id);
 
-        // parsing
-        $mag = floatval($g->magnitudo);
-        $depth = intval(str_replace(' km','',$g->kedalaman));
+    $depth = (float) preg_replace('/[^0-9.]/', '', $g->kedalaman);
 
-        // ===== NORMALISASI
-        $Mmin=2; $Mmax=8;
-        $Dmin=0; $Dmax=300;
+    // ===========================
+    // Kirim ke FastAPI
+    // ===========================
+    $response = Http::post(
+        'http://127.0.0.1:8001/predict',
+        [
+            'magnitudo' => (float) $g->magnitudo,
+            'kedalaman' => $depth
+        ]
+    );
 
-        $mNorm = ($mag - $Mmin)/($Mmax - $Mmin);
-        $dNorm = ($depth - $Dmin)/($Dmax - $Dmin);
-
-        // ===== CENTROID
-        $c_tinggi = [0.9, 0.1];
-        $c_sedang = [0.6, 0.5];
-        $c_rendah = [0.3, 0.8];
-
-        // ===== DISTANCE
-        $dist = function($m,$d,$c){
-            return sqrt(pow($m-$c[0],2)+pow($d-$c[1],2));
-        };
-
-        $dTinggi = $dist($mNorm,$dNorm,$c_tinggi);
-        $dSedang = $dist($mNorm,$dNorm,$c_sedang);
-        $dRendah = $dist($mNorm,$dNorm,$c_rendah);
-
-        // ===== RESULT
-        $min = min($dTinggi,$dSedang,$dRendah);
-
-        if($min==$dTinggi){ $cluster='TINGGI'; $status='SIAGA'; }
-        elseif($min==$dSedang){ $cluster='SEDANG'; $status='WASPADA'; }
-        else { $cluster='RENDAH'; $status='AMAN'; }
-
-        return view('admin.dec_detail', compact(
-            'g','mag','depth','mNorm','dNorm',
-            'c_tinggi','c_sedang','c_rendah',
-            'dTinggi','dSedang','dRendah',
-            'cluster','status'
-        ));
+    if (!$response->successful()) {
+        abort(500, 'Gagal terhubung ke DEC API');
     }
+
+    $dec = $response->json();
+
+    return view('admin.dec_detail', [
+
+        'g' => $g,
+
+        'input' => $dec['input'],
+
+        'normalized' => $dec['normalized'],
+
+        'latent' => $dec['latent'],
+
+        'centroids' => $dec['centroids'],
+
+        'probability' => $dec['probability'],
+
+        'cluster' => $dec['cluster'],
+
+        'label' => $dec['label'],
+
+        'status' => $dec['status'],
+
+        'color' => $dec['color']
+
+    ]);
+}
 }
