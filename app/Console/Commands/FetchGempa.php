@@ -61,7 +61,20 @@ class FetchGempa extends Command
             $mag = (float) str_replace(',', '.', $magnitudo);
             $depth = (int) preg_replace('/[^0-9]/', '', $kedalaman);
 
-            $cluster = $this->hitungCluster($mag, $depth);
+           $decResponse = Http::timeout(20)->post(
+    env('DEC_API_URL') . '/predict',
+    [
+        'magnitudo' => $mag,
+        'kedalaman' => $depth
+    ]
+);
+
+if (!$decResponse->successful()) {
+    $this->line('ERROR');
+    return Command::FAILURE;
+}
+
+$cluster = $decResponse->json();
 
             Gempa::create([
                 'tanggal' => $tanggal,
@@ -89,71 +102,4 @@ class FetchGempa extends Command
         }
     }
 
-    private function hitungCluster($mag, $depth)
-    {
-        $centroids = ClusterCentroid::all();
-
-        if ($centroids->count() == 0) {
-            return $this->statusFallback($mag);
-        }
-
-        $closest = null;
-        $minDistance = null;
-
-        foreach ($centroids as $c) {
-
-            $distance = sqrt(
-                pow($mag - (float) $c->magnitudo, 2) +
-                pow($depth - (float) $c->kedalaman, 2)
-            );
-
-            if ($minDistance === null || $distance < $minDistance) {
-                $minDistance = $distance;
-                $closest = $c;
-            }
-        }
-
-        if (!$closest) {
-            return $this->statusFallback($mag);
-        }
-
-        return [
-            'cluster' => $closest->cluster ?? '-',
-            'label' => $closest->label ?? '-',
-            'status' => $closest->status ?? $this->statusFallback($mag)['status'],
-            'color' => $closest->color ?? $this->statusFallback($mag)['color'],
-            'jarak' => $minDistance ?? 0,
-        ];
-    }
-
-    private function statusFallback($mag)
-    {
-        if ($mag >= 6.0) {
-            return [
-                'cluster' => '-',
-                'label' => 'Bahaya Tinggi',
-                'status' => 'SIAGA',
-                'color' => '#EF4444',
-                'jarak' => 0,
-            ];
-        }
-
-        if ($mag >= 5.0) {
-            return [
-                'cluster' => '-',
-                'label' => 'Bahaya Sedang',
-                'status' => 'WASPADA',
-                'color' => '#FACC15',
-                'jarak' => 0,
-            ];
-        }
-
-        return [
-            'cluster' => '-',
-            'label' => 'Bahaya Rendah',
-            'status' => 'AMAN',
-            'color' => '#22C55E',
-            'jarak' => 0,
-        ];
-    }
 }
