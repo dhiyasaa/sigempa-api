@@ -25,9 +25,6 @@ class GempaWorker extends Command
 
                 $output = trim(Artisan::output());
 
-                // Hapus ini kalau sudah tidak perlu debug
-                $this->info("OUTPUT = [$output]");
-
                 if ($output === 'NO_NEW_DATA') {
 
                     $this->line(
