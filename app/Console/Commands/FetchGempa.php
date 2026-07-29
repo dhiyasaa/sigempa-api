@@ -63,13 +63,20 @@ class FetchGempa extends Command
             $mag = (float) str_replace(',', '.', $magnitudo);
             $depth = (int) preg_replace('/[^0-9]/', '', $kedalaman);
 
-            $decResponse = Http::timeout(20)->post(
-                env('DEC_API_URL') . '/predict',
-                [
-                    'magnitudo' => $mag,
-                    'kedalaman' => $depth
-                ]
-            );
+            $decUrl = rtrim(env('DEC_API_URL'), '/') . '/predict';
+
+Log::info('DEC URL: ' . $decUrl);
+
+$decResponse = Http::timeout(20)
+    ->acceptJson()
+    ->asJson()
+    ->post($decUrl, [
+        'magnitudo' => $mag,
+        'kedalaman' => $depth
+    ]);
+
+Log::info('DEC STATUS: ' . $decResponse->status());
+Log::info('DEC BODY: ' . $decResponse->body());
 
             if (!$decResponse->successful()) {
                 $this->line('ERROR');
