@@ -24,6 +24,7 @@ class GempaWorker extends Command
                 Artisan::call('gempa:fetch');
 
                 $output = trim(Artisan::output());
+                $this->info("OUTPUT = [$output]");
 
                 if (str_contains($output, 'NEW_DATA')) {
 
