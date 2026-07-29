@@ -26,6 +26,10 @@ class DecController extends Controller
         }
 
         $dec = $response->json();
+        $gempa->update([
+    'status' => $dec['status'],
+    'color' => $dec['color'],
+]);
 
         return view('admin.dec_detail', [
 

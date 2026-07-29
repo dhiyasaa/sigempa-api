@@ -14,13 +14,10 @@ class SyncDecStatus extends Command
 
     public function handle()
     {
-        // Ambil argumen source (BMKG / DUMMY)
         $source = $this->argument('source');
 
-        // Query dasar
         $query = Gempa::query();
 
-        // Kalau source diisi, filter berdasarkan source
         if ($source) {
             $query->where('source', strtoupper($source));
         }
@@ -49,27 +46,31 @@ class SyncDecStatus extends Command
                     );
 
                     if (!$response->successful()) {
-                        $this->warn("Gagal ID {$g->id}");
+                        $this->error("Gagal ID {$g->id}");
                         continue;
                     }
 
                     $dec = $response->json();
 
+                    // DEBUG
+                    $this->info(
+                        "ID {$g->id} | M={$g->magnitudo} | K={$depth} | STATUS={$dec['status']}"
+                    );
+
                     $g->update([
                         'status' => $dec['status'],
-                        'color' => $dec['color'],
+                        'color'  => $dec['color'],
                     ]);
 
                     $updated++;
 
-                    $this->line("✔ ID {$g->id} -> {$dec['status']}");
-
                 } catch (\Throwable $e) {
 
-                    $this->error("ID {$g->id}: " . $e->getMessage());
+                    $this->error("ID {$g->id}: ".$e->getMessage());
 
                 }
             }
+
         });
 
         $this->info("--------------------------------");

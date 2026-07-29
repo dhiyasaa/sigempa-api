@@ -30,15 +30,6 @@ class GempaController extends Controller
         ->latest()
         ->get()
         ->map(function ($g) {
-            $dec = $this->hitungDEC($g->magnitudo, $g->kedalaman);
-
-            if (!$g->status || !$g->color) {
-                $g->update([
-                    'status' => $dec['status'],
-                    'color' => $dec['color'],
-                ]);
-            }
-
             return [
                 'id' => $g->id,
                 'tanggal' => $g->tanggal,
@@ -46,8 +37,8 @@ class GempaController extends Controller
                 'magnitudo' => (float) $g->magnitudo,
                 'kedalaman' => $this->ambilAngkaKedalaman($g->kedalaman),
                 'wilayah' => $g->wilayah,
-                'status' => $g->status ?? $dec['status'],
-                'color' => $g->color ?? $dec['color'],
+                'status' => $g->status,
+                'color' => $g->color,
                 'source' => $g->source,
             ];
         });

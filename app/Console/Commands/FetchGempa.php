@@ -18,11 +18,17 @@ class FetchGempa extends Command
 
         try {
 
-            $response = Http::withOptions([
-                'verify' => false,
-            ])
-                ->timeout(20)
-                ->get($url);
+           $response = Http::withOptions([
+    'verify' => false,
+])
+->timeout(20)
+->get($url);
+
+$this->info("BMKG STATUS : ".$response->status());
+
+$this->info(substr($response->body(),0,300));
+                $this->info('BMKG Status : ' . $response->status());
+$this->info($response->body());
 
             if (!$response->successful()) {
                 $this->line('ERROR');
@@ -96,10 +102,12 @@ $cluster = $decResponse->json();
 
         } catch (\Throwable $e) {
 
-            $this->line('ERROR');
+    $this->error($e->getMessage());
 
-            return Command::FAILURE;
-        }
+    \Log::error($e);
+
+    return Command::FAILURE;
+}
     }
 
 }

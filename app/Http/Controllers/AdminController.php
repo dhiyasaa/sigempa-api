@@ -22,6 +22,7 @@ class AdminController extends Controller
     // 🔥 DEC LIST
     // =========================
     public function decList() {
+        
         $data = Gempa::latest()->paginate(10);
         return view('admin.dec_list', compact('data'));
     }
